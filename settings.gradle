@@ -1,0 +1,4 @@
+/*
+ * Gradle settings file - Groovy DSL
+ */
+rootProject.name = 'InventoryManager'
