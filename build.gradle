@@ -22,5 +22,5 @@ javafx {
 }
 
 application {
-    mainClass = 'app.MainApp'
+    mainClass = 'app.Launcher'
 }
