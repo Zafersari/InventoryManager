@@ -1,20 +1,21 @@
 package app;
 
 import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
 public class MainApp extends Application {
 
     @Override
-    public void start(Stage stage) {
-        Label label = new Label("InventoryManager läuft! ✅");
-        StackPane root = new StackPane(label);
-        Scene scene = new Scene(root, 800, 600);
+    public void start(Stage stage) throws Exception {
+        FXMLLoader loader = new FXMLLoader(
+            getClass().getResource("/controller/inventory.fxml")
+        );
+        Scene scene = new Scene(loader.load());
         stage.setTitle("InventoryManager");
         stage.setScene(scene);
+        stage.setResizable(true);
         stage.show();
     }
 

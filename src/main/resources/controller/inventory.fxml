@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="controller.InventoryController"
+            prefWidth="1000" prefHeight="680">
+
+    <!-- ── TOP: TITLE BAR ───────────────────────────────────── -->
+    <top>
+        <VBox style="-fx-background-color: #2c3e50; -fx-padding: 15;">
+            <Label text="📦 InventoryManager"
+                   style="-fx-text-fill: white; -fx-font-size: 22;
+                          -fx-font-weight: bold;"/>
+            <Label text="Data Structure: AVL Tree  ·  Algorithms: Tree Traversal · Merge Sort · Binary Search"
+                   style="-fx-text-fill: #bdc3c7; -fx-font-size: 11;"/>
+        </VBox>
+    </top>
+
+    <!-- ── LEFT: INPUT FORM ─────────────────────────────────── -->
+    <left>
+        <VBox spacing="8"
+              style="-fx-padding: 15; -fx-background-color: #ecf0f1;"
+              prefWidth="220">
+
+            <Label text="Add Product"
+                   style="-fx-font-weight: bold; -fx-font-size: 14;"/>
+
+            <Label text="Name:"/>
+            <TextField fx:id="nameField" promptText="e.g. Laptop"/>
+
+            <Label text="Price (€):"/>
+            <TextField fx:id="priceField" promptText="e.g. 999.99"/>
+
+            <Label text="Stock:"/>
+            <TextField fx:id="stockField" promptText="e.g. 15"/>
+
+            <Label text="Category:"/>
+            <TextField fx:id="categoryField" promptText="e.g. Electronics"/>
+
+            <Button fx:id="addButton"
+                    text="➕ Add Product"
+                    onAction="#handleAdd"
+                    maxWidth="Infinity"
+                    style="-fx-background-color: #27ae60;
+                           -fx-text-fill: white;
+                           -fx-font-weight: bold;"/>
+
+            <Separator/>
+            <!-- DELETE SECTION -->
+            <Label text="Delete"
+                   style="-fx-font-weight: bold; -fx-font-size: 14;"/>
+            <Label text="Select a row in the table, then click delete."
+                   style="-fx-text-fill: #7f8c8d; -fx-font-size: 11;"
+                   wrapText="true"/>
+            <Button text="🗑️ Delete Selected"
+                    onAction="#handleDelete"
+                    maxWidth="Infinity"
+                    style="-fx-background-color: #c0392b;
+                           -fx-text-fill: white;
+                           -fx-font-weight: bold;"/>
+
+            <!-- SEARCH SECTION -->
+            <Label text="Search"
+                   style="-fx-font-weight: bold; -fx-font-size: 14;"/>
+
+            <Label text="Search by Price (€):"/>
+            <TextField fx:id="searchPriceField" promptText="e.g. 999.99"/>
+            <Button text="🔍 Search by Price"
+                    onAction="#handleSearchByPrice"
+                    maxWidth="Infinity"
+                    style="-fx-background-color: #2980b9;
+                           -fx-text-fill: white;"/>
+
+            <Label text="Search by Name:"/>
+            <TextField fx:id="searchNameField" promptText="e.g. Laptop"/>
+            <Button text="🔍 Search by Name"
+                    onAction="#handleSearchByName"
+                    maxWidth="Infinity"
+                    style="-fx-background-color: #2980b9;
+                           -fx-text-fill: white;"/>
+
+            <Separator/>
+
+            <!-- STATS SECTION -->
+            <Label text="Statistics"
+                   style="-fx-font-weight: bold; -fx-font-size: 14;"/>
+            <Label fx:id="statsLabel"
+                   text="Products: 0"
+                   style="-fx-font-size: 12; -fx-text-fill: #7f8c8d;"
+                   wrapText="true"/>
+
+        </VBox>
+    </left>
+
+    <!-- ── CENTER: TABLE + BUTTONS ──────────────────────────── -->
+    <center>
+        <VBox spacing="10" style="-fx-padding: 15;">
+
+            <!-- ACTION BUTTONS -->
+            <HBox spacing="8">
+
+                <!-- AVL Traversal buttons -->
+                <Button text="📋 Inorder"
+                        onAction="#handleInorder"
+                        style="-fx-background-color: #8e44ad;
+                               -fx-text-fill: white;"/>
+                <Button text="🌲 Preorder"
+                        onAction="#handlePreorder"
+                        style="-fx-background-color: #8e44ad;
+                               -fx-text-fill: white;"/>
+                <Button text="🍂 Postorder"
+                        onAction="#handlePostorder"
+                        style="-fx-background-color: #8e44ad;
+                               -fx-text-fill: white;"/>
+
+                <!-- Merge Sort buttons -->
+                <Button text="🔤 Sort by Name"
+                        onAction="#handleSortByName"
+                        style="-fx-background-color: #e67e22;
+                               -fx-text-fill: white;"/>
+                <Button text="📦 Sort by Stock"
+                        onAction="#handleSortByStock"
+                        style="-fx-background-color: #e67e22;
+                               -fx-text-fill: white;"/>
+
+                <!-- Reset -->
+                <Button text="🔄 Reset View"
+                        onAction="#handleReset"
+                        style="-fx-background-color: #95a5a6;
+                               -fx-text-fill: white;"/>
+            </HBox>
+
+            <!-- TABLE VIEW -->
+            <TableView fx:id="productTable" VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="nameColumn"
+                                 text="Name"
+                                 prefWidth="200"/>
+                    <TableColumn fx:id="priceColumn"
+                                 text="Price (€)"
+                                 prefWidth="110"/>
+                    <TableColumn fx:id="stockColumn"
+                                 text="Stock"
+                                 prefWidth="90"/>
+                    <TableColumn fx:id="categoryColumn"
+                                 text="Category"
+                                 prefWidth="160"/>
+                </columns>
+                <placeholder>
+                    <Label text="No products yet. Add a product to get started."/>
+                </placeholder>
+            </TableView>
+
+            <!-- STATUS BAR -->
+            <HBox style="-fx-background-color: #dfe6e9;
+                         -fx-padding: 8;
+                         -fx-background-radius: 4;">
+                <Label fx:id="statusLabel"
+                       text="Ready."
+                       style="-fx-font-size: 12; -fx-text-fill: #2d3436;"/>
+            </HBox>
+
+        </VBox>
+    </center>
+
+</BorderPane>
