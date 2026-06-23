@@ -90,8 +90,8 @@ public class AVLTree {
     //     B         A
     //
     private AVLNode rotateLR(AVLNode C) {
-        C.left = rotateLeft(C.left);  // step 1: rotate left child to the left
-        return rotateRight(C);         // step 2: rotate root to the right
+        C.left = rotateLeft(C.left); // step 1: rotate left child to the left
+        return rotateRight(C); // step 2: rotate root to the right
     }
 
     // RL Rotation — right child is left-heavy, two steps needed
@@ -104,7 +104,7 @@ public class AVLTree {
     //
     private AVLNode rotateRL(AVLNode A) {
         A.right = rotateRight(A.right); // step 1: rotate right child to the right
-        return rotateLeft(A);            // step 2: rotate root to the left
+        return rotateLeft(A); // step 2: rotate root to the left
     }
 
     // ── INSERT ─────────────────────────────────────────────────
@@ -127,12 +127,14 @@ public class AVLTree {
         if (product.getPrice() < node.key) {
             node.left = insertNode(node.left, product);
 
-        // If new product's price is larger → go right
+            // If new product's price is larger → go right
         } else if (product.getPrice() > node.key) {
             node.right = insertNode(node.right, product);
 
-        // If price is equal → duplicate, do not insert
+            // If price is equal → another product at the same price.
+            // Add it to this node's bucket; no new node, so no rebalancing needed.
         } else {
+            node.products.add(product);
             return node;
         }
 
@@ -168,66 +170,12 @@ public class AVLTree {
         // Tree is still balanced — return node unchanged
         return node;
     }
-    // ── TRAVERSAL ──────────────────────────────────────────────
 
-    // INORDER: Left → Root → Right
-    // Always returns nodes in ascending order by price
-    public void inorder() {
-        if (root == null) {
-            System.out.println("Tree is empty.");
-            return;
-        }
-        System.out.println("=== Inorder (sorted by price) ===");
-        inorderNode(root);
-        System.out.println();
-    }
-
-    private void inorderNode(AVLNode node) {
-        if (node == null) return;
-        inorderNode(node.left);
-        System.out.println("  " + node.product);
-        inorderNode(node.right);
-    }
-
-    // PREORDER: Root → Left → Right
-    // Shows the structure of the tree as it is built
-    public void preorder() {
-        if (root == null) {
-            System.out.println("Tree is empty.");
-            return;
-        }
-        System.out.println("=== Preorder (tree structure) ===");
-        preorderNode(root);
-        System.out.println();
-    }
-
-    private void preorderNode(AVLNode node) {
-        if (node == null) return;
-        System.out.println("  " + node.product);
-        preorderNode(node.left);
-        preorderNode(node.right);
-    }
-
-    // POSTORDER: Left → Right → Root
-    // Children are always processed before their parent
-    public void postorder() {
-        if (root == null) {
-            System.out.println("Tree is empty.");
-            return;
-        }
-        System.out.println("=== Postorder (children first) ===");
-        postorderNode(root);
-        System.out.println();
-    }
-
-    private void postorderNode(AVLNode node) {
-        if (node == null) return;
-        postorderNode(node.left);
-        postorderNode(node.right);
-        System.out.println("  " + node.product);
-    }
-
-    // Returns all products as a list — used by MergeSort and BinarySearch
+    // ── IN-ORDER COLLECTION ────────────────────────────────────
+    // Returns all products as a list in ascending price order.
+    // An in-order walk of a BST (Left → Root → Right) visits the nodes
+    // already sorted, so this is the bridge from the tree to the
+    // list-based algorithms (Merge Sort, Quick Sort, Binary Search).
     public java.util.List<Product> getAllProducts() {
         java.util.List<Product> list = new java.util.ArrayList<>();
         collectInorder(root, list);
@@ -235,84 +183,63 @@ public class AVLTree {
     }
 
     private void collectInorder(AVLNode node, java.util.List<Product> list) {
-        if (node == null) return;
+        if (node == null)
+            return;
         collectInorder(node.left, list);
-        list.add(node.product);
+        list.addAll(node.products);   // every product in this price bucket
         collectInorder(node.right, list);
     }
     // ── SEARCH ─────────────────────────────────────────────────
 
-    // Public method — search by exact price
-    public Product searchByPrice(double price) {
+    // Public method — returns all products at the given price (empty if none).
+    // Several products can share a price, so this returns the whole bucket.
+    public java.util.List<Product> searchByPrice(double price) {
         AVLNode result = searchNode(root, price);
         if (result == null) {
-            System.out.println("No product found with price: " + price);
-            return null;
+            return new java.util.ArrayList<>();
         }
-        return result.product;
+        // Return a copy so callers cannot modify the tree's internal bucket
+        return new java.util.ArrayList<>(result.products);
     }
 
     // Private recursive method — traverses the tree like BST search
     private AVLNode searchNode(AVLNode node, double price) {
 
         // Reached end of branch — product does not exist
-        if (node == null) return null;
+        if (node == null)
+            return null;
 
         // Found it
-        if (price == node.key) return node;
-
+        if (Math.abs(price - node.key) < 0.001)
+            return node;
         // Price is smaller → go left
-        if (price < node.key) return searchNode(node.left, price);
+        if (price < node.key)
+            return searchNode(node.left, price);
 
         // Price is larger → go right
         return searchNode(node.right, price);
     }
 
-    // Returns the product with the minimum price (leftmost node)
+    // Returns a product with the minimum price (leftmost node)
     public Product getMinPrice() {
-        if (root == null) return null;
+        if (root == null)
+            return null;
         AVLNode current = root;
         while (current.left != null) {
             current = current.left;
         }
-        return current.product;
+        return current.products.get(0);
     }
 
-    // Returns the product with the maximum price (rightmost node)
+    // Returns a product with the maximum price (rightmost node)
     public Product getMaxPrice() {
-        if (root == null) return null;
+        if (root == null)
+            return null;
         AVLNode current = root;
         while (current.right != null) {
             current = current.right;
         }
-        return current.product;
-    }
-    // Returns all products in preorder — for displaying tree structure in UI
-    public java.util.List<Product> getPreorderProducts() {
-        java.util.List<Product> list = new java.util.ArrayList<>();
-        collectPreorder(root, list);
-        return list;
-    }
-
-    private void collectPreorder(AVLNode node, java.util.List<Product> list) {
-        if (node == null) return;
-        list.add(node.product);
-        collectPreorder(node.left, list);
-        collectPreorder(node.right, list);
-    }
-
-    // Returns all products in postorder — for displaying in UI
-    public java.util.List<Product> getPostorderProducts() {
-        java.util.List<Product> list = new java.util.ArrayList<>();
-        collectPostorder(root, list);
-        return list;
-    }
-
-    private void collectPostorder(AVLNode node, java.util.List<Product> list) {
-        if (node == null) return;
-        collectPostorder(node.left, list);
-        collectPostorder(node.right, list);
-        list.add(node.product);
+        return current.products.get(0);
     }
 
     // Returns total number of products in the tree
@@ -321,76 +248,92 @@ public class AVLTree {
     }
 
     private int countNodes(AVLNode node) {
-        if (node == null) return 0;
-        return 1 + countNodes(node.left) + countNodes(node.right);
+        if (node == null)
+            return 0;
+        // Count every product, not every node — a node may hold several
+        return node.products.size() + countNodes(node.left) + countNodes(node.right);
     }
     // ── DELETE ─────────────────────────────────────────────────
 
-    // Public method — called from outside
-    public void delete(double price) {
-        root = deleteNode(root, price);
+    // Public method — removes ONE specific product from the tree.
+    // We delete by product (not just by price) because several products can
+    // share a price; we must remove exactly the one the user selected.
+    public void delete(Product target) {
+        root = deleteProduct(root, target);
     }
 
-    // Private recursive method — does the actual work
-    private AVLNode deleteNode(AVLNode node, double price) {
+    // Navigates to the price bucket and removes the target product from it.
+    // The node is only removed from the tree once its bucket becomes empty.
+    private AVLNode deleteProduct(AVLNode node, Product target) {
+        if (node == null)
+            return null;
 
-        // STEP 1: STANDARD BST DELETE ─────────────────────────
-        if (node == null) return null;
+        double price = target.getPrice();
 
         if (price < node.key) {
-            node.left = deleteNode(node.left, price);
+            node.left = deleteProduct(node.left, target);
         } else if (price > node.key) {
-            node.right = deleteNode(node.right, price);
+            node.right = deleteProduct(node.right, target);
         } else {
-            // Found the node to delete — 3 cases:
+            // This node holds the bucket for that price — remove the product.
+            node.products.remove(target);
 
-            // Case 1: Leaf node — just remove it
-            if (node.left == null && node.right == null) {
-                return null;
+            // Other products still share this price → structure is unchanged.
+            if (!node.products.isEmpty()) {
+                return node;
             }
 
-            // Case 2a: Only right child exists
-            if (node.left == null) return node.right;
-
-            // Case 2b: Only left child exists
-            if (node.right == null) return node.left;
-
-            // Case 3: Two children
-            // Find inorder successor (smallest node in right subtree)
-            AVLNode successor = getMinNode(node.right);
-
-            // Replace current node's data with successor's data
-            node.product = successor.product;
-            node.key     = successor.key;
-
-            // Delete the successor from right subtree
-            node.right = deleteNode(node.right, successor.key);
+            // Bucket is now empty → remove the whole node from the tree.
+            return removeNode(node, node.key);
         }
 
-        // STEP 2: UPDATE HEIGHT ───────────────────────────────
         updateHeight(node);
+        return rebalance(node);
+    }
 
-        // STEP 3: CHECK BALANCE ───────────────────────────────
+    // Removes the entire node with the given (unique) price — the standard AVL
+    // delete with its three child cases. Also used to detach the in-order
+    // successor in the two-children case.
+    private AVLNode removeNode(AVLNode node, double price) {
+        if (node == null)
+            return null;
+
+        if (price < node.key) {
+            node.left = removeNode(node.left, price);
+        } else if (price > node.key) {
+            node.right = removeNode(node.right, price);
+        } else {
+            // Case 1: leaf node — just remove it
+            if (node.left == null && node.right == null)
+                return null;
+
+            // Case 2: only one child
+            if (node.left == null)
+                return node.right;
+            if (node.right == null)
+                return node.left;
+
+            // Case 3: two children — move the in-order successor's whole bucket
+            // up into this node, then detach the successor node.
+            AVLNode successor = getMinNode(node.right);
+            node.key = successor.key;
+            node.products = successor.products;
+            node.right = removeNode(node.right, successor.key);
+        }
+
+        updateHeight(node);
+        return rebalance(node);
+    }
+
+    // Re-applies AVL balance after a deletion. Picks the rotation from the
+    // children's balance factors — the standard delete-rebalance cases.
+    private AVLNode rebalance(AVLNode node) {
         int bf = getBalanceFactor(node);
 
-        // STEP 4: APPLY ROTATION IF NEEDED ────────────────────
-
-        // LL case
-        if (bf > 1 && getBalanceFactor(node.left) >= 0) {
-            return rotateRight(node);
-        }
-        // LR case
-        if (bf > 1 && getBalanceFactor(node.left) < 0) {
-            return rotateLR(node);
-        }
-        // RR case
-        if (bf < -1 && getBalanceFactor(node.right) <= 0) {
-            return rotateLeft(node);
-        }
-        // RL case
-        if (bf < -1 && getBalanceFactor(node.right) > 0) {
-            return rotateRL(node);
-        }
+        if (bf > 1 && getBalanceFactor(node.left) >= 0)   return rotateRight(node); // LL
+        if (bf > 1 && getBalanceFactor(node.left) < 0)    return rotateLR(node);    // LR
+        if (bf < -1 && getBalanceFactor(node.right) <= 0) return rotateLeft(node);  // RR
+        if (bf < -1 && getBalanceFactor(node.right) > 0)  return rotateRL(node);    // RL
 
         return node;
     }

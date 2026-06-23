@@ -2,6 +2,7 @@ package controller;
 
 import algorithms.BinarySearch;
 import algorithms.MergeSort;
+import algorithms.QuickSort;
 import datastructure.AVLTree;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -46,6 +47,11 @@ public class InventoryController {
     // Observable list — JavaFX table reads from this
     private final ObservableList<Product> tableData = FXCollections.observableArrayList();
 
+    // Remembers the last sort so clicking the same button again toggles
+    // the direction (ascending ↔ descending), like a spreadsheet header.
+    private String lastSortField = "";
+    private boolean lastAscending = true;
+
     // ── INITIALIZE ─────────────────────────────────────────────
     // Called automatically by JavaFX after fxml is loaded
 
@@ -83,16 +89,36 @@ public class InventoryController {
     // ── SAMPLE DATA ────────────────────────────────────────────
 
     private void loadSampleData() {
-        tree.insert(new Product("Laptop",    999.99, 15, "Electronics"));
-        tree.insert(new Product("Mouse",      29.99, 80, "Electronics"));
-        tree.insert(new Product("Keyboard",   79.99, 50, "Electronics"));
-        tree.insert(new Product("Monitor",   349.99, 20, "Electronics"));
-        tree.insert(new Product("Headphones",149.99, 35, "Electronics"));
-        tree.insert(new Product("Desk",      249.99, 10, "Furniture"));
-        tree.insert(new Product("Chair",     199.99, 12, "Furniture"));
-        tree.insert(new Product("Notebook",    4.99,200, "Stationery"));
-        tree.insert(new Product("Pen",         1.99,500, "Stationery"));
-        tree.insert(new Product("Backpack",   59.99, 40, "Accessories"));
+        tree.insert(new Product("Laptop",        999.99,  15, "Electronics"));
+        tree.insert(new Product("Mouse",          29.99,  80, "Electronics"));
+        tree.insert(new Product("Keyboard",       79.99,  50, "Electronics"));
+        tree.insert(new Product("Monitor",       349.99,  20, "Electronics"));
+        tree.insert(new Product("Headphones",    149.99,  35, "Electronics"));
+        tree.insert(new Product("Desk",          249.99,  10, "Furniture"));
+        tree.insert(new Product("Chair",         199.99,  12, "Furniture"));
+        tree.insert(new Product("Notebook",        4.99, 200, "Stationery"));
+        tree.insert(new Product("Pen",             1.99, 500, "Stationery"));
+        tree.insert(new Product("Backpack",       59.99,  40, "Accessories"));
+        tree.insert(new Product("Smartphone",    899.99,  25, "Electronics"));
+        tree.insert(new Product("Tablet",        499.99,  18, "Electronics"));
+        tree.insert(new Product("Webcam",         59.99,  60, "Electronics"));  // same price as Backpack
+        tree.insert(new Product("Microphone",     89.99,  22, "Electronics"));
+        tree.insert(new Product("USB Cable",       9.99, 300, "Accessories"));
+        tree.insert(new Product("HDMI Cable",      9.99, 150, "Accessories"));  // same price as USB Cable
+        tree.insert(new Product("Mouse Pad",      14.99,  90, "Accessories"));
+        tree.insert(new Product("Desk Lamp",      34.99,  16, "Furniture"));
+        tree.insert(new Product("Bookshelf",     129.99,   8, "Furniture"));
+        tree.insert(new Product("Office Chair",  299.99,  14, "Furniture"));
+        tree.insert(new Product("Stapler",         7.49, 120, "Stationery"));
+        tree.insert(new Product("Marker Set",     12.99,  75, "Stationery"));
+        tree.insert(new Product("Sticky Notes",    3.49, 400, "Stationery"));
+        tree.insert(new Product("Printer",       199.99,   9, "Electronics"));  // same price as Chair
+        tree.insert(new Product("Ink Cartridge",  24.99,  45, "Electronics"));
+        tree.insert(new Product("External SSD",  119.99,  30, "Electronics"));
+        tree.insert(new Product("Router",         79.99,  28, "Electronics"));  // same price as Keyboard
+        tree.insert(new Product("Speaker",       149.99,  19, "Electronics"));  // same price as Headphones
+        tree.insert(new Product("Water Bottle",   19.99,   5, "Accessories"));
+        tree.insert(new Product("Monitor Stand",  39.99,  33, "Accessories"));
         refreshTable(tree.getAllProducts());
         updateStats();
     }
@@ -131,7 +157,7 @@ public class InventoryController {
             return;
         }
 
-        // Insert into AVL Tree
+        // Insert into AVL Tree (products that share a price are kept together)
         Product product = new Product(name, price, stock, category);
         tree.insert(product);
 
@@ -168,14 +194,14 @@ public class InventoryController {
             return;
         }
 
-        // AVL Tree search
-        Product result = tree.searchByPrice(price);
+        // AVL Tree search — returns every product at that price
+        List<Product> results = tree.searchByPrice(price);
 
-        if (result != null) {
-            // Show only the found product in the table
-            refreshTable(List.of(result));
-            setStatus("✅ Found: " + result.getName() +
-                      "  [AVL Tree search — O(log n)]");
+        if (!results.isEmpty()) {
+            // Show all products found at that price
+            refreshTable(results);
+            setStatus("✅ Found " + results.size() + " product(s) at " + price +
+                      "€  [AVL Tree search]");
         } else {
             setStatus("❌ No product found with price: " + price + "€");
         }
@@ -201,13 +227,13 @@ public class InventoryController {
         // Step 2: Sort by name using Merge Sort
         List<Product> sorted = MergeSort.sort(all, "name");
 
-        // Step 3: Binary Search on sorted list
-        Product result = BinarySearch.searchByName(sorted, name);
+        // Step 3: Binary Search on sorted list — collects all equal names
+        List<Product> results = BinarySearch.searchByName(sorted, name);
 
-        if (result != null) {
-            refreshTable(List.of(result));
-            setStatus("✅ Found: " + result.getName() +
-                      "  [MergeSort + BinarySearch — O(n log n) + O(log n)]");
+        if (!results.isEmpty()) {
+            refreshTable(results);
+            setStatus("✅ Found " + results.size() + " product(s) named \"" + name +
+                      "\"  [Merge Sort + Binary Search]");
         } else {
             setStatus("❌ No product found with name: " + name);
         }
@@ -215,45 +241,46 @@ public class InventoryController {
         searchNameField.clear();
     }
 
-    // ── TRAVERSAL BUTTONS ──────────────────────────────────────
+    // ── SORT BUTTONS ───────────────────────────────────────────
 
-    @FXML
-    private void handleInorder() {
-        List<Product> list = tree.getAllProducts();
-        refreshTable(list);
-        setStatus("📋 Inorder Traversal — sorted by price ascending  [O(n)]");
-    }
-
-    @FXML
-    private void handlePreorder() {
-        List<Product> list = tree.getPreorderProducts();
-        refreshTable(list);
-        setStatus("🌲 Preorder Traversal — root first, then left, then right  [O(n)]");
-    }
-
-    @FXML
-    private void handlePostorder() {
-        List<Product> list = tree.getPostorderProducts();
-        refreshTable(list);
-        setStatus("🍂 Postorder Traversal — children first, then root  [O(n)]");
-    }
-
-    // ── MERGE SORT BUTTONS ─────────────────────────────────────
-
+    // Merge Sort — stable and guaranteed O(n log n). Used for the name
+    // column so equal names keep their original relative order.
     @FXML
     private void handleSortByName() {
-        List<Product> all    = tree.getAllProducts();
-        List<Product> sorted = MergeSort.sort(all, "name");
+        boolean asc = nextDirection("name");
+        List<Product> sorted = MergeSort.sort(tree.getAllProducts(), "name", asc);
         refreshTable(sorted);
-        setStatus("🔤 Merge Sort by name  [O(n log n)]");
+        setStatus("🔤 Merge Sort by name — stable, " + dir(asc));
+    }
+
+    // Quick Sort — in-place, average O(n log n). Used for the numeric columns.
+    @FXML
+    private void handleSortByPrice() {
+        boolean asc = nextDirection("price");
+        List<Product> sorted = QuickSort.sort(tree.getAllProducts(), "price", asc);
+        refreshTable(sorted);
+        setStatus("💶 Quick Sort by price — in-place, " + dir(asc));
     }
 
     @FXML
     private void handleSortByStock() {
-        List<Product> all    = tree.getAllProducts();
-        List<Product> sorted = MergeSort.sort(all, "stock");
+        boolean asc = nextDirection("stock");
+        List<Product> sorted = QuickSort.sort(tree.getAllProducts(), "stock", asc);
         refreshTable(sorted);
-        setStatus("📦 Merge Sort by stock  [O(n log n)]");
+        setStatus("📦 Quick Sort by stock — in-place, " + dir(asc));
+    }
+
+    // Decides the direction for the next sort on this field: a new field
+    // starts ascending, the same field again flips the previous direction.
+    private boolean nextDirection(String field) {
+        boolean ascending = field.equals(lastSortField) ? !lastAscending : true;
+        lastSortField = field;
+        lastAscending = ascending;
+        return ascending;
+    }
+
+    private String dir(boolean ascending) {
+        return ascending ? "ascending ↑" : "descending ↓";
     }
 
     // ── DELETE ─────────────────────────────────────────────────
@@ -267,21 +294,22 @@ public class InventoryController {
             return;
         }
 
-        // Delete from AVL Tree by price
-        tree.delete(selected.getPrice());
+        // Delete the selected product from the AVL Tree
+        tree.delete(selected);
 
         // Refresh table
         refreshTable(tree.getAllProducts());
         updateStats();
 
         setStatus("🗑️ Deleted: " + selected.getName() +
-                  "  [AVL Tree delete — O(log n)]");
+                  "  [AVL Tree delete]");
     }
     // ── RESET ──────────────────────────────────────────────────
     @FXML
     private void handleReset() {
         refreshTable(tree.getAllProducts());
-        setStatus("🔄 View reset — showing Inorder (sorted by price)");
+        lastSortField = "";   // next sort click starts ascending again
+        setStatus("🔄 View reset — products in price order (AVL Tree)");
     }
 
     // ── HELPER METHODS ─────────────────────────────────────────

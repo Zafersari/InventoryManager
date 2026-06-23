@@ -24,3 +24,9 @@ javafx {
 application {
     mainClass = 'app.Launcher'   // MainApp değil, Launcher!
 }
+
+// Ensure source files (which contain €, →, box-drawing chars) compile
+// as UTF-8 regardless of the machine's default platform encoding.
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}

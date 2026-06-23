@@ -14,7 +14,7 @@
             <Label text="📦 InventoryManager"
                    style="-fx-text-fill: white; -fx-font-size: 22;
                           -fx-font-weight: bold;"/>
-            <Label text="Data Structure: AVL Tree  ·  Algorithms: Tree Traversal · Merge Sort · Binary Search"
+            <Label text="Data Structure: AVL Tree  ·  Algorithms: Merge Sort · Quick Sort · Binary Search"
                    style="-fx-text-fill: #bdc3c7; -fx-font-size: 11;"/>
         </VBox>
     </top>
@@ -102,28 +102,20 @@
             <!-- ACTION BUTTONS -->
             <HBox spacing="8">
 
-                <!-- AVL Traversal buttons -->
-                <Button text="📋 Inorder"
-                        onAction="#handleInorder"
-                        style="-fx-background-color: #8e44ad;
-                               -fx-text-fill: white;"/>
-                <Button text="🌲 Preorder"
-                        onAction="#handlePreorder"
-                        style="-fx-background-color: #8e44ad;
-                               -fx-text-fill: white;"/>
-                <Button text="🍂 Postorder"
-                        onAction="#handlePostorder"
-                        style="-fx-background-color: #8e44ad;
-                               -fx-text-fill: white;"/>
-
-                <!-- Merge Sort buttons -->
-                <Button text="🔤 Sort by Name"
+                <!-- Merge Sort button (orange) -->
+                <Button text="🔤 Sort by Name (Merge Sort)"
                         onAction="#handleSortByName"
                         style="-fx-background-color: #e67e22;
                                -fx-text-fill: white;"/>
-                <Button text="📦 Sort by Stock"
+
+                <!-- Quick Sort buttons (purple) -->
+                <Button text="💶 Sort by Price (Quick Sort)"
+                        onAction="#handleSortByPrice"
+                        style="-fx-background-color: #8e44ad;
+                               -fx-text-fill: white;"/>
+                <Button text="📦 Sort by Stock (Quick Sort)"
                         onAction="#handleSortByStock"
-                        style="-fx-background-color: #e67e22;
+                        style="-fx-background-color: #8e44ad;
                                -fx-text-fill: white;"/>
 
                 <!-- Reset -->

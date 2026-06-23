@@ -6,16 +6,21 @@ import java.util.ArrayList;
 
 public class MergeSort {
 
-    // Public method — sorts the list by the given criterion
+    // Public method — sorts the list ascending by the given criterion.
     // criterion: "name", "stock", "category"
     public static List<Product> sort(List<Product> list, String criterion) {
+        return sort(list, criterion, true);
+    }
+
+    // Overload — sorts ascending (true) or descending (false).
+    public static List<Product> sort(List<Product> list, String criterion, boolean ascending) {
         if (list.size() <= 1) return list;
-        return mergeSort(list, criterion);
+        return mergeSort(list, criterion, ascending);
     }
 
     // ── STEP 1: DIVIDE ─────────────────────────────────────────
     // Keep splitting the list in half until each piece has 1 element
-    private static List<Product> mergeSort(List<Product> list, String criterion) {
+    private static List<Product> mergeSort(List<Product> list, String criterion, boolean ascending) {
 
         // Base case — a list of 1 element is already sorted
         if (list.size() <= 1) return list;
@@ -28,15 +33,15 @@ public class MergeSort {
         List<Product> right = new ArrayList<>(list.subList(mid, list.size()));
 
         // Recursively sort each half
-        left  = mergeSort(left,  criterion);
-        right = mergeSort(right, criterion);
+        left  = mergeSort(left,  criterion, ascending);
+        right = mergeSort(right, criterion, ascending);
 
         // ── STEP 2: MERGE ─────────────────────────────────────
-        return merge(left, right, criterion);
+        return merge(left, right, criterion, ascending);
     }
 
     // Merges two sorted lists into one sorted list
-    private static List<Product> merge(List<Product> left, List<Product> right, String criterion) {
+    private static List<Product> merge(List<Product> left, List<Product> right, String criterion, boolean ascending) {
 
         List<Product> result = new ArrayList<>();
         int i = 0; // pointer for left list
@@ -44,7 +49,7 @@ public class MergeSort {
 
         // Compare elements one by one, always take the smaller one
         while (i < left.size() && j < right.size()) {
-            if (compare(left.get(i), right.get(j), criterion) <= 0) {
+            if (compare(left.get(i), right.get(j), criterion, ascending) <= 0) {
                 result.add(left.get(i));
                 i++;
             } else {
@@ -69,13 +74,17 @@ public class MergeSort {
     }
 
     // ── COMPARATOR ─────────────────────────────────────────────
-    // Returns negative if a < b, 0 if equal, positive if a > b
-    private static int compare(Product a, Product b, String criterion) {
+    // Returns negative if a < b, 0 if equal, positive if a > b (ascending).
+    // For descending order we simply flip the result — equal elements still
+    // return 0, so the merge stays stable in both directions.
+    private static int compare(Product a, Product b, String criterion, boolean ascending) {
+        int result;
         switch (criterion) {
-            case "name":     return a.getName().compareToIgnoreCase(b.getName());
-            case "stock":    return Integer.compare(a.getStock(), b.getStock());
-            case "category": return a.getCategory().compareToIgnoreCase(b.getCategory());
-            default:         return a.getName().compareToIgnoreCase(b.getName());
+            case "name":     result = a.getName().compareToIgnoreCase(b.getName()); break;
+            case "stock":    result = Integer.compare(a.getStock(), b.getStock()); break;
+            case "category": result = a.getCategory().compareToIgnoreCase(b.getCategory()); break;
+            default:         result = a.getName().compareToIgnoreCase(b.getName()); break;
         }
+        return ascending ? result : -result;
     }
 }
